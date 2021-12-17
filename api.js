@@ -167,8 +167,6 @@ router.get("/tx/send/:hex", (req, res) => {
       const data = JSON.parse(body);
       data.status = 200;
       res.send(data);
-    } else {
-      console.log(error);
     }
   };
   request(options, callback);
@@ -189,12 +187,68 @@ router.get("/tx/test/:hex", (req, res) => {
       const data = JSON.parse(body);
       data.status = 200;
       res.send(data);
-    } else {
-      console.log(error);
     }
   };
   request(options, callback);
 });
+
+router.get("/wallet/history", (req, res) => {
+  var dataString = `{"jsonrpc":"1.0","id":"curltext","method":"listtransactions","params":[]}`;
+  var options = {
+    url: URL,
+    method: "POST",
+    headers: headers,
+    body: dataString
+  };
+  callback = (error, response, body) => {
+    if (!error && response.statusCode == 200) {
+      const data = JSON.parse(body);
+      data.status = 200;
+      res.send(data);
+    }
+  };
+  request(options, callback);
+});
+
+router.get("/wallet/balance", (req, res) => {
+  var dataString = `{"jsonrpc":"1.0","id":"curltext","method":"getbalance","params":[]}`;
+  var options = {
+    url: URL,
+    method: "POST",
+    headers: headers,
+    body: dataString
+  };
+  callback = (error, response, body) => {
+    if (!error && response.statusCode == 200) {
+      const data = JSON.parse(body);
+      data.status = 200;
+      res.send(data);
+    }
+  };
+  request(options, callback);
+});
+
+router.get("/wallet/recieved/:address", (req, res) => {
+  var dataString = `{"jsonrpc":"1.0","id":"curltext","method":"getreceivedbyaddress","params":["${
+    req.params.address
+  }", 1]}`;
+  var options = {
+    url: URL,
+    method: "POST",
+    headers: headers,
+    body: dataString
+  };
+  callback = (error, response, body) => {
+    if (!error && response.statusCode == 200) {
+      const data = JSON.parse(body);
+      data.status = 200;
+      res.send(data);
+    }
+  };
+  request(options, callback);
+});
+
+//bitcore-methods
 
 router.get("/wallet/generate", (req, res) => {
   const privateKey = new bitcore.PrivateKey(); 
@@ -205,26 +259,17 @@ router.get("/wallet/generate", (req, res) => {
   }});
 });
 
+//TODO method to get utxos or use insight
 
-router.get("/wallet/balance/:address", async (req, res) => {
-  try{
-  const address = req.params.address;
-  const insight = new explorers.Insight();
-  console.log(insight)
-  let balance = 0;
-  await insight.getUnspentUtxos([address], function(error, utxos) {
-    if(utxos) {
-      for (var i = 0; i < utxos.length; i++) {
-        balance +=utxos[i]['satoshis'];
-      }
-    }
-    console.log('balance:'+ balance);
-  });
-  res.send({balance: balance});
-  } catch (error) {
-    console.log(error)
-  }
-});
+/*
+var utxo = {
+  "txId" : "115e8f72f39fad874cfab0deed11a80f24f967a84079fb56ddf53ea02e308986",
+  "outputIndex" : 0,
+  "address" : "17XBj6iFEsf8kzDMGQk5ghZipxX49VXuaV",
+  "script" : "76a91447862fe165e6121af80d5dde1ecb478ed170565b88ac",
+  "satoshis" : 50000
+};
+*/
 
 router.post("/tx/generate", (req, res) => {
   const pvKey = req.body.privateKey;
