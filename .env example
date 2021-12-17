@@ -1,0 +1,3 @@
+RPC_USER=bitcoinuser
+RPC_PASSWORD=bitcoinpassword
+RPC_PORT=19832
