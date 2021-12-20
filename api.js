@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const bitcore = require('bitcore-lib');
 var Insight = require("bitcore-explorers").Insight;
-var insight = new Insight("testnet");
+var insight = new Insight("https://test.bitpay.com");
 var request = require("request");
 const dotenv = require("dotenv");
 dotenv.config();
@@ -320,6 +320,18 @@ router.get("/wallet/generate", (req, res) => {
   });
 });
 
+router.get("/tx/unspent-test/:address", (req, res) => {
+  const address = req.params.address;
+  insight.getUnspentUtxos(address, function (error, utxos) {
+    console.log(utxos)
+    if (error) {
+      res.send(error);
+    } else {
+      res.send(utxos);
+    }
+  });
+});
+
 /*
 var utxo = {
   "txId" : "115e8f72f39fad874cfab0deed11a80f24f967a84079fb56ddf53ea02e308986",
@@ -341,8 +353,9 @@ router.post("/tx/generate", (req, res) => {
     .to(to, value)
     .change(from)
     .sign(new bitcore.PrivateKey(pvKey))
-    .serialize();
+    .serialize(true);
   insight.broadcast(transaction, function (error, transactionId) {
+    console.log(error)
     if (error) {
       res.send(error.message);
     } else {
