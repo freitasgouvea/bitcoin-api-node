@@ -186,7 +186,6 @@ router.get("/tx/send/:hex", (req, res) => {
         "locktime": 0,
         "replaceable": false
     }
-
 }
 */
 
@@ -354,6 +353,7 @@ router.post("/tx/generate", (req, res) => {
     .change(from)
     .sign(new bitcore.PrivateKey(pvKey))
     .serialize(true);
+  //send by node
   insight.broadcast(transaction, function (error, transactionId) {
     console.log(error)
     if (error) {
