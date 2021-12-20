@@ -1,12 +1,13 @@
 Object.defineProperty(global, '_bitcore', { get() { return undefined }, set() { } })
 const express = require("express");
 const router = express.Router();
-const bitcore = require('bitcore-lib');
-var Insight = require("bitcore-explorers").Insight;
-var insight = new Insight("https://test.bitpay.com");
 var request = require("request");
 const dotenv = require("dotenv");
 dotenv.config();
+
+const bitcore = require('bitcore-lib');
+var Insight = require("bitcore-explorers").Insight;
+var insight = new Insight("https://test.bitpay.com");//bitpsy provider
 
 const USER = process.env.RPC_USER;
 const PASS = process.env.RPC_PASSWORD;
