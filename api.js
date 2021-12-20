@@ -2,7 +2,8 @@ Object.defineProperty(global, '_bitcore', { get() { return undefined }, set() { 
 const express = require("express");
 const router = express.Router();
 const bitcore = require('bitcore-lib');
-const explorers = require('bitcore-explorers');
+var Insight = require("bitcore-explorers").Insight;
+var insight = new Insight("testnet");
 var request = require("request");
 const dotenv = require("dotenv");
 dotenv.config();
@@ -167,9 +168,55 @@ router.get("/tx/send/:hex", (req, res) => {
   request(options, callback);
 });
 
+/*
+{
+    "tx": {
+        "inputs": [
+            {
+                "txId": "769d47d71c3a94247dd38a37c74e057d3a419b6a7aaffe35568bdf025d08827f",
+                "vout": 0,
+                "sequence": 4294967295
+            }
+        ],
+        "outputs": [
+            {
+                "76a914a34857258a49a1c9fd74090185905ca17d39378188ac": 0.00001,
+            }
+        ],
+        "locktime": 0,
+        "replaceable": false
+    }
+
+}
+*/
+
+router.post("/tx/create", (req, res) => {
+  var dataString = `{"jsonrpc":"1.0","id":"curltext","method":"createrawtransaction","params":
+    [${req.body.tx.inputs}], 
+    [${req.body.tx.outputs}],
+    0,
+    false
+  }`;
+  console.log(req.body.tx.inputs, req.body.tx.outputs, dataString)
+  var options = {
+    url: URL,
+    method: "POST",
+    headers: headers,
+    body: dataString
+  };
+  callback = (error, response, body) => {
+    if (!error && response.statusCode == 200) {
+      const data = JSON.parse(body);
+      data.status = 200;
+      res.send(data);
+    }
+  };
+  request(options, callback);
+});
+
 router.get("/tx/test/:hex", (req, res) => {
-  var dataString = `{"jsonrpc":"1.0","id":"curltext","method":"testmempoolaccept","params":[["${req.params.hex
-    }"]]}`;
+  var dataString = `{"jsonrpc":"1.0","id":"curltext","method":"testmempoolaccept","params":["${req.params.hex
+    }"]}`;
   var options = {
     url: URL,
     method: "POST",
@@ -285,14 +332,23 @@ var utxo = {
 
 router.post("/tx/generate", (req, res) => {
   const pvKey = req.body.privateKey;
+  const from = req.body.from;
   const to = req.body.to;
   const value = req.body.value;
   const utxo = req.body.utxo;
   const transaction = new bitcore.Transaction()
     .from(utxo)
     .to(to, value)
-    .sign(new bitcore.PrivateKey(pvKey));
-  res.send({ tx: transaction });
+    .change(from)
+    .sign(new bitcore.PrivateKey(pvKey))
+    .serialize();
+  insight.broadcast(transaction, function (error, transactionId) {
+    if (error) {
+      res.send(error.message);
+    } else {
+      res.send({ tx: transaction, txId: transactionId });
+    }
+  });
 });
 
 module.exports = router;
